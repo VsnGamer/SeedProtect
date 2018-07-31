@@ -1,0 +1,16 @@
+[
+{
+  "modid": "seedprotect",
+  "name": "Seed Protect",
+  "description": "Protects farmland from beeing trampled",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["VsnGamer"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
