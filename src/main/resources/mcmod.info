@@ -5,7 +5,7 @@
   "description": "Protects farmland from beeing trampled",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://minecraft.curseforge.com/projects/seed-protect",
   "updateUrl": "",
   "authorList": ["VsnGamer"],
   "credits": "",

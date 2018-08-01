@@ -1,15 +1,12 @@
 package xyz.vsngamer.seedprotect;
 
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -19,34 +16,39 @@ public class Events {
     @SubscribeEvent
     static void onTrample(BlockEvent.FarmlandTrampleEvent event) {
 
-        if (event.getWorld().isRemote) {
-            event.setCanceled(true);
+        if (isClientSide(event))
             return;
-        }
 
-        Entity entity = event.getEntity();
-        MinecraftServer server = event.getWorld().getMinecraftServer();
+        Material materialOnTop = event.getWorld().getBlockState(event.getPos().up()).getMaterial();
         String entityType = null;
 
-        if (entity instanceof EntityPlayer && !ModConfig.players) {
-            event.setCanceled(true);
-            entityType = "player";
-        } else if (entity instanceof EntityLiving && !ModConfig.mobs) {
-            event.setCanceled(true);
-            entityType = "mob";
+        if (!(ModConfig.check_crop && materialOnTop == Material.AIR)) {
+            Entity entity = event.getEntity();
+            if (entity instanceof EntityPlayer && !ModConfig.players) {
+                event.setCanceled(true);
+                entityType = "Player";
+            } else if (entity instanceof EntityLiving && !ModConfig.mobs) {
+                event.setCanceled(true);
+                entityType = "Mob";
+            }
         }
 
-        if (ModConfig.debug && event.isCanceled()) {
-            BlockPos pos = event.getPos();
-            server.sendMessage(new TextComponentString("Protected against " + entityType + "(" + entity.getName() + ")" + " trampling at X:" + pos.getX() + " Y:" + pos.getY() + " Z:" + pos.getZ()));
-        }
+        debug(event, entityType);
     }
 
+    private static boolean isClientSide(BlockEvent.FarmlandTrampleEvent event) {
+        if (event.getWorld().isRemote) {
+            event.setCanceled(true);
+            return true;
+        }
+        return false;
+    }
 
-    @SubscribeEvent
-    static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.getModID().equals(Constants.MOD_ID)) {
-            ConfigManager.sync(Constants.MOD_ID, Config.Type.INSTANCE);
+    private static void debug(BlockEvent.FarmlandTrampleEvent event, String entityType) {
+        if (ModConfig.debug && event.isCanceled()) {
+            MinecraftServer server = event.getWorld().getMinecraftServer();
+            String message = String.format("Protected against %s(%s) trampling at X:%d Y:%d Z:%d", entityType, event.getEntity().getName(), event.getPos().getX(), event.getPos().getY(), event.getPos().getZ());
+            server.sendMessage(new TextComponentString(message));
         }
     }
 }
